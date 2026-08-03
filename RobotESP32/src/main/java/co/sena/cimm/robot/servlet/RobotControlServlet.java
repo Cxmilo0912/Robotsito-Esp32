@@ -1,6 +1,7 @@
 package co.sena.cimm.robot.servlet;
 
 import co.sena.cimm.robot.model.ComandoRobot;
+import co.sena.cimm.robot.model.EstadoGrabacion;
 import co.sena.cimm.robot.model.RobotConfig;
 import co.sena.cimm.robot.util.RobotHttpClient;
 
@@ -94,6 +95,12 @@ public class RobotControlServlet extends HttpServlet {
 
         // Enviar comando al robot
         ComandoRobot resultado = RobotHttpClient.enviarComando(config, endpoint);
+        
+        EstadoGrabacion estadoGrabacion = GrabacionServlet.getEstadoFromSession(request);
+        
+        if(estadoGrabacion.isGrabando()){
+            estadoGrabacion.registrarPaso(endpoint,resultado.getTipo().getDescripcion());
+        }
 
         // Registrar en historial de sesión
         registrarHistorial(request, resultado);

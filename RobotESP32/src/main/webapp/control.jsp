@@ -1493,8 +1493,11 @@
                                 <button class="btn-extra" onclick="detenerGrabacion()">
                                     ⏹️ Detener
                                 </button>
-                                <button class="btn-extra" onclick="enviarCmd('reproducir')">
+                                <button class="btn-extra" onclick="reproducirGrabacion()">
                                     ▶️ Reproducir
+                                </button>
+                                <button class="btn-extra" onclick="limpiarGrabacion()">
+                                    🗑️ Limpiar
                                 </button>
                             </div>
 
@@ -1518,6 +1521,13 @@
                                         onmousedown="startMove('back')" onmouseup="stopMove()"
                                         onmouseleave="stopMove()" ontouchstart="startMove('back')"
                                         ontouchend="stopMove()">↓<span>S/↓</span></button>
+                            </div>
+                            <div class="auto-status-card" style="margin-top:10px;">
+                                <div class="auto-status-lbl">▶ ESTADO DE GRABACIÓN</div>
+                                <div class="auto-status-txt" id="grabacionStatusTxt">Listo para grabar</div>
+                                <div class="prog-wrap">
+                                    <div class="prog-bar" id="grabacionProgress"></div>
+                                </div>
                             </div>
 
                             <div
@@ -1877,25 +1887,73 @@
         </script>
 
         <script>
+            function enviarAccionGrabacion(accion) {
+                const fd = new FormData();
+                fd.append('accion', accion);
+                return fetch(CTX + '/grabar', {method: 'POST', body: fd})
+                        .then(r => r.json())
+                        .then(d => {
+                            toast(d.exito ? '✓' : '✕', d.mensaje, d.exito ? '#39A900' : '#f00');
+                            return d;
+                        })
+                        .catch(() => toast('✕', 'Error de red', '#f00'));
+
+            }
+          
             function iniciarGrabacion() {
-                // Lógica para enviar el comando de iniciar grabación al backend/ESP32
-                enviarCmd('iniciar_grabacion');
 
-                document.getElementById('btnIniciar').innerHTML = '🔴 Grabando';
-
-                // Muestra el div del dpad
-                document.getElementById('panelDpad').style.display = 'grid'; // Usa 'grid' o 'flex' dependiendo de cómo tengas definido el .dpad en tu CSS
+                enviarAccionGrabacion('iniciar').then(d => {
+                    if (d.exito) {
+                        document.getElementById('btnIniciar').innerHTML = '🔴 Grabando';
+                        document.getElementById('panelDpad').style.display = 'grid';
+                    }
+                });
             }
 
             function detenerGrabacion() {
-                // Lógica para enviar el comando de detener grabación
-                enviarCmd('detener_grabacion');
-
-                document.getElementById('btnIniciar').innerHTML = '📹 Iniciar';
-
-                // Oculta el div del dpad
-                document.getElementById('panelDpad').style.display = 'none';
+                
+                 enviarAccionGrabacion('detener').then(d => {
+                    if (d.exito) {
+                        document.getElementById('btnIniciar').innerHTML = '📹 Iniciar';
+                        document.getElementById('panelDpad').style.display = 'none';
+                    }
+                });
             }
+            
+            function reproducirGrabacion(){
+                enviarAccionGrabacion('reproducir')
+            }
+             function limpiarGrabacion(){
+                enviarAccionGrabacion('limpiar')
+            }
+             function actualizarEstadoGrabacion() {
+                fetch(CTX + '/grabar?accion=estado')
+                        .then(r => r.json())
+                        .then(d => {
+                            const txt = document.getElementById('grabacionStatusTxt');
+                            const bar = document.getElementById('grabacionProgress');
+                            if (!txt || !bar)
+                                return;
+
+                            if (d.reproduciendo) {
+                                txt.textContent = 'Reproduciendo: paso ' + d.pasoActual + '/' + d.totalPasos;
+                                bar.style.width = d.progreso + '%';
+                            } else if (d.grabando) {
+                                txt.textContent = '🔴 Grabando: ' + d.totalGrabado + ' pasos registrados';
+                                bar.style.width = '0%';
+                            } else {
+                                txt.textContent = d.totalGrabado > 0
+                                        ? 'Listo: ' + d.totalGrabado + ' pasos grabados'
+                                        : 'Listo para grabar';
+                                bar.style.width = '0%';
+                            }
+                        })
+                        .catch(() => {
+                        });
+
+
+            }
+            setInterval(actualizarEstadoGrabacion, 1000);
         </script>
     </body>
 
