@@ -31,7 +31,7 @@ public class RobotStatusServlet extends HttpServlet {
 
         RobotConfig config = RobotConfigServlet.getConfigFromSession(request);
         PrintWriter out = response.getWriter();
-
+ 
         boolean conectado = RobotHttpClient.verificarConexion(config);
         config.setConnected(conectado);
 

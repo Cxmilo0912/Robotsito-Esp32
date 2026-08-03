@@ -97,6 +97,7 @@ public class RobotControlServlet extends HttpServlet {
 
         // Registrar en historial de sesión
         registrarHistorial(request, resultado);
+        
 
         // Actualizar estado de conexión en la config
         config.setConnected(resultado.isExitoso());
