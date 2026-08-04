@@ -1887,19 +1887,8 @@
         </script>
 
         <script>
-            function enviarAccionGrabacion(accion) {
-                const fd = new FormData();
-                fd.append('accion', accion);
-                return fetch(CTX + '/grabar', {method: 'POST', body: fd})
-                        .then(r => r.json())
-                        .then(d => {
-                            toast(d.exito ? '✓' : '✕', d.mensaje, d.exito ? '#39A900' : '#f00');
-                            return d;
-                        })
-                        .catch(() => toast('✕', 'Error de red', '#f00'));
 
-            }
-          
+
             function iniciarGrabacion() {
 
                 enviarAccionGrabacion('iniciar').then(d => {
@@ -1911,22 +1900,22 @@
             }
 
             function detenerGrabacion() {
-                
-                 enviarAccionGrabacion('detener').then(d => {
+
+                enviarAccionGrabacion('detener').then(d => {
                     if (d.exito) {
                         document.getElementById('btnIniciar').innerHTML = '📹 Iniciar';
                         document.getElementById('panelDpad').style.display = 'none';
                     }
                 });
             }
-            
-            function reproducirGrabacion(){
-                enviarAccionGrabacion('reproducir')
+
+            function reproducirGrabacion() {
+                enviarAccionGrabacion('reproducir');
             }
-             function limpiarGrabacion(){
-                enviarAccionGrabacion('limpiar')
+            function limpiarGrabacion() {
+                enviarAccionGrabacion('limpiar');
             }
-             function actualizarEstadoGrabacion() {
+            function actualizarEstadoGrabacion() {
                 fetch(CTX + '/grabar?accion=estado')
                         .then(r => r.json())
                         .then(d => {
@@ -1951,6 +1940,18 @@
                         .catch(() => {
                         });
 
+
+            }
+            function enviarAccionGrabacion(accion) {
+                const fd = new FormData();
+                fd.append('accion', accion);
+                return fetch(CTX + '/grabar', {method: 'POST', body: fd})
+                        .then(r => r.json())
+                        .then(d => {
+                            toast(d.exito ? '✓' : '✕', d.mensaje, d.exito ? '#39A900' : '#f00');
+                            return d;
+                        })
+                        .catch(() => toast('✕', 'Error de red', '#f00'));
 
             }
             setInterval(actualizarEstadoGrabacion, 1000);

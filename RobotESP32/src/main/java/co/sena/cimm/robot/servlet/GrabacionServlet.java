@@ -26,6 +26,7 @@ import javax.servlet.http.HttpSession;
  * @author julil
  */
 @WebServlet("/grabar")
+@javax.servlet.annotation.MultipartConfig
 public class GrabacionServlet extends HttpServlet {
 
     private static final String SESSION_ESTADO = "estadoGrabacion";
@@ -45,6 +46,9 @@ public class GrabacionServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         String accion = request.getParameter("accion");
+        if (accion == null) {
+            accion = "";
+        }
         PrintWriter out = response.getWriter();
         EstadoGrabacion estado = getEstadoFromSession(request);
         switch (accion) {
@@ -120,7 +124,7 @@ public class GrabacionServlet extends HttpServlet {
 
     }
 
-    private void responderEstado(HttpServletRequest request,HttpServletResponse response) throws IOException {
+    private void responderEstado(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Cache-Control", "no-cache");

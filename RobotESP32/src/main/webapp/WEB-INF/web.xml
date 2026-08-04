@@ -45,6 +45,10 @@
         <servlet-name>ModoAutonomoServlet</servlet-name>
         <servlet-class>co.sena.cimm.robot.servlet.ModoAutonomoServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>GrabacionServlet</servlet-name>
+        <servlet-class>co.sena.cimm.robot.servlet.GrabacionServlet</servlet-class>
+    </servlet>
 
     <!-- ==================== MAPPINGS ==================== -->
 
@@ -76,6 +80,11 @@
     <servlet-mapping>
         <servlet-name>ModoAutonomoServlet</servlet-name>
         <url-pattern>/autonomo</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>GrabacionServlet</servlet-name>
+        <url-pattern>/grabar</url-pattern>
     </servlet-mapping>
 
     <!-- ==================== WELCOME FILE ==================== -->
