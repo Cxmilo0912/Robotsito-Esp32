@@ -25,6 +25,11 @@ public class PasoGrabado implements Serializable {
         this.descripcion = descripcion;
     }
 
+    public PasoGrabado(String comando, long duracionMs) {
+         this.comando = comando;
+        this.duracionMs = duracionMs;
+    }
+
     public String getComando() {
         return comando;
     }

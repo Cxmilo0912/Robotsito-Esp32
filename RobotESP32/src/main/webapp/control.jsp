@@ -1187,6 +1187,32 @@
                 .joystick-layout {
                     grid-template-columns: 1fr;
                 }
+
+            }
+
+            .man-paso {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: var(--gris-card);
+                border: 1px solid var(--gris-borde);
+                border-radius: 7px;
+                padding: 7px 10px;
+                font-family: 'Share Tech Mono', monospace;
+                font-size: 11px;
+            }
+
+            .man-paso .num {
+                color: var(--acento);
+                margin-right: 8px;
+            }
+
+            .man-paso .del {
+                background: none;
+                border: none;
+                color: var(--danger);
+                cursor: pointer;
+                font-size: 13px;
             }
         </style>
     </head>
@@ -1535,8 +1561,51 @@
                                 WASD / flechas · mantén presionado
                             </div>
                         </div>
-                    </div>
+                    </div>        
                 </div>
+
+                <!-- ========== TAB GRABADO MANUAL ========== -->
+                <div class="tab-panel" id="tab-grabarManual">
+                    <div class="auto-layout">
+                        <div class="auto-title">✍🏻 Grabado Manual de Rutina</div>
+
+                        <div class="auto-status-card" style="max-width:520px;">
+                            <div class="auto-status-lbl">▶ AGREGAR PASO</div>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                                <select id="manAccion" style="background:var(--gris-card); color:var(--texto);
+                                        border:1px solid var(--gris-borde); border-radius:6px; padding:8px;
+                                        font-family:'Share Tech Mono',monospace; font-size:12px;">
+                                    <option value="/control?var=car&val=1">↑ Adelante</option>
+                                    <option value="/control?var=car&val=5">↓ Atrás</option>
+                                    <option value="/control?var=car&val=4">← Izquierda</option>
+                                    <option value="/control?var=car&val=2">→ Derecha</option>
+                                    <option value="/control?var=car&val=3">⏹ Detener</option>
+                                </select>
+                                <input type="number" id="manDuracion" value="1000" min="100" step="100"
+                                       placeholder="ms"
+                                       style="width:90px; background:var(--gris-card); color:var(--texto);
+                                       border:1px solid var(--gris-borde); border-radius:6px; padding:8px;
+                                       font-family:'Share Tech Mono',monospace; font-size:12px;">
+                                <span style="font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--dim);">ms</span>
+                                <button class="btn-extra" onclick="agregarPasoManual()">➕ Agregar</button>
+                            </div>
+                        </div>
+
+                        <div class="auto-status-card" style="max-width:520px;">
+                            <div class="auto-status-lbl">▶ SECUENCIA (<span id="manCount">0</span> pasos)</div>
+                            <div id="manLista" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;">
+                                <div style="font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--dim); opacity:0.6;">
+                                    Sin pasos aún. Agrega el primero arriba.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="auto-btn-group">
+                            <button class="btn-iniciar" id="btnEnviarManual" onclick="enviarSecuenciaManual()">▶ ENVIAR Y REPRODUCIR</button>
+                            <button class="btn-detener" onclick="limpiarSecuenciaManual()">🗑 LIMPIAR</button>
+                        </div>
+                    </div>
+                </div>        
 
 
             </div>
@@ -1955,6 +2024,81 @@
 
             }
             setInterval(actualizarEstadoGrabacion, 1000);
+            let secuenciaManual = [];
+
+            const iconosAccion = {
+                '/control?var=car&val=1': '↑',
+                '/control?var=car&val=5': '↓',
+                '/control?var=car&val=4': '←',
+                '/control?var=car&val=2': '→',
+                '/control?var=car&val=3': '⏹'
+            };
+
+            function agregarPasoManual() {
+                const accion = document.getElementById('manAccion').value;
+                const duracion = parseInt(document.getElementById('manDuracion').value, 10);
+                if (!duracion || duracion < 100) {
+                    toast('✕', 'Duración inválida', '#f00');
+                    return;
+                }
+                secuenciaManual.push({accion, duracion});
+                renderSecuenciaManual();
+            }
+            function eliminarPasoManual(idx) {
+                secuenciaManual.splice(idx, 1);
+                renderSecuenciaManual();
+            }
+
+            function limpiarSecuenciaManual() {
+                secuenciaManual = [];
+                renderSecuenciaManual();
+            }
+
+            function renderSecuenciaManual() {
+                const cont = document.getElementById('manLista');
+                document.getElementById('manCount').textContent = secuenciaManual.length;
+                if (secuenciaManual.length === 0) {
+                    cont.innerHTML = '<div style="font-family:\'Share Tech Mono\',monospace;font-size:11px;color:var(--dim);opacity:0.6;">Sin pasos aún. Agrega el primero arriba.</div>';
+                    return;
+                }
+                let html = '';
+                for (let i = 0; i < secuenciaManual.length; i++) {
+                    const p = secuenciaManual[i];
+                    const icono = iconosAccion[p.accion] || p.accion;
+                    html += '<div class="man-paso">' +
+                            '<span><span class="num">' + (i + 1) + '.</span>' + icono + ' ' + p.accion + ' — ' + p.duracion + 'ms</span>' +
+                            '<button class="del" onclick="eliminarPasoManual(' + i + ')">✕</button>' +
+                            '</div>';
+                }
+                cont.innerHTML = html;
+            }
+            function enviarSecuenciaManual() {
+                if (secuenciaManual.length === 0) {
+                    toast('✕', 'Agrega al menos un paso', '#f00');
+                    return;
+                }
+
+                let partes = [];
+                for (let i = 0; i < secuenciaManual.length; i++) {
+                    const paso = secuenciaManual[i];
+                    partes.push(paso.accion + '|' + paso.duracion);
+                }
+                const texto = partes.join(',');
+
+
+                const fd = new FormData();
+                fd.append('accion', 'cargarManual');
+                fd.append('secuencia', texto);
+                fetch(CTX + '/grabar', {method: 'POST', body: fd})
+                        .then(r => r.json())
+                        .then(d => {
+                            toast(d.exito ? '✓' : '✕', d.mensaje, d.exito ? '#39A900' : '#f00');
+                            if (d.exito) {
+                                enviarAccionGrabacion('reproducir');
+                            }
+                        })
+                        .catch(() => toast('✕', 'Error de red', '#f00'));
+            }
         </script>
     </body>
 

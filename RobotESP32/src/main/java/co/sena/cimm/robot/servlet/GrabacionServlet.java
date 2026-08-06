@@ -10,6 +10,7 @@ import co.sena.cimm.robot.model.RobotConfig;
 import co.sena.cimm.robot.util.RobotHttpClient;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -68,6 +69,32 @@ public class GrabacionServlet extends HttpServlet {
             case "limpiar":
                 estado.limpiar();
                 out.print("{\"exito\":true,\"mensaje\":\"Grabación descartada\"}");
+                break;
+            case "cargarManual":
+                estado.iniciar();
+                String secuencia = request.getParameter("secuencia");
+                if (secuencia == null) {
+                    secuencia = "";
+                }
+                List<PasoGrabado> listaPasos = new ArrayList<>();
+                for (String parte : secuencia.split(",")) {
+                    String[] campos = parte.split("\\|");
+                    if (campos.length == 2) {
+                        try {
+                            listaPasos.add(new PasoGrabado(campos[0], Long.parseLong(campos[1])));
+                        } catch (NumberFormatException e) {
+                        }
+                    }
+
+                }
+                if (listaPasos.isEmpty()) {
+                    out.print("{\"exito\":false,\"mensaje\":\"Secuencia vacía o inválida\"}");
+                    break;
+                }
+                estado.limpiar();
+                estado.setPasos(listaPasos);
+                out.print("{\"exito\":true,\"mensaje\":\"" + listaPasos.size() + " pasos cargados\"}");
+
                 break;
 
             default:
